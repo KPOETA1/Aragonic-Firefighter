@@ -5,6 +5,12 @@ from pygame.locals import *
 import BusquedaNoInformada.Amplitud
 from BusquedaNoInformada.Amplitud import *
 
+import BusquedaNoInformada.CostoUniforme
+from BusquedaNoInformada.CostoUniforme import *
+
+import BusquedaNoInformada.Profundidad
+from BusquedaNoInformada.Profundidad import *
+
 
 
 class Button:
@@ -14,7 +20,7 @@ class Button:
         self.width, self.height = 210, 50
         self.color = '#D7621A'
         self.textoColor = (255, 255, 255)
-        self.font = pyg.font.SysFont('Pixels', 50)
+        self.font = pyg.font.Font("./Fonts/Pixels.ttf", 50)
         self.rect = pyg.Rect(x, y, self.width, self.height)
         self.prepara_texto(texto)
 
@@ -35,6 +41,9 @@ class World:
     def __init__(self, filename):
         pyg.init()
         pyg.mixer.init()
+
+        #Bombero
+        self.bombero_position = (0, 0) # Posición inicial del bombero
 
         # ventana
         self.screen = pyg.display.set_mode((500, 500))
@@ -70,6 +79,24 @@ class World:
                 self.cols = len(self.grid[0])
         except FileNotFoundError:
             print(f"El archivo '{filename}' no se encontró.")
+
+
+    #   actualizacion posicion del bombero
+    def move_bomber(self, path):
+        for next_position in path:
+            self.bombero_position = next_position
+
+            self.screen.fill(self.color)
+
+            self.carga_mundo()
+
+            pyg.display.update()
+
+            pyg.time.delay(250)
+            # print("posicion bombero", self.bombero_position)
+
+
+
 
     def display(self):
 
@@ -128,9 +155,13 @@ class World:
                 pyg.draw.rect(self.screen, color, (x1, y1, x2, y2))
                 pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
                 pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
-                if color == 'green':
-                    bombero = pyg.image.load('Sprites/bomberoicon.png')
+                # dibujar el bombero en movimiento
+                if (row, col) == self.bombero_position:
+                    bombero = pyg.image.load('./Sprites/bomberoicon.png')
+                    bombero = pyg.transform.scale(bombero, (50, 50))
                     self.screen.blit(bombero, (x1, y1))
+                    
+
 
     def matrix_generator(self):
         matriz = np.zeros((10, 10), dtype=int)
@@ -140,7 +171,7 @@ class World:
                 valores = linea.split()
                 for columna, valor in enumerate(valores):
                     matriz[fila, columna] = int(valor)
-        self.world = matriz
+        self.matrix = matriz
 
     def checa_boton(self, mouse_pos):
         self.boton_c = self.carga_mundo_boton.rect.collidepoint(mouse_pos)
@@ -148,6 +179,8 @@ class World:
         self.boton_ninf = self.no_informada_boton.rect.collidepoint(mouse_pos)
         self.boton_m = self.menu_boton.rect.collidepoint(mouse_pos)
         self.boton_amp = self.amplitud_boton.rect.collidepoint(mouse_pos)
+        self.boton_cuni = self.costo_uniforme_boton.rect.collidepoint(mouse_pos)
+        self.boton_prof = self.profundidad_boton.rect.collidepoint(mouse_pos)
         if self.boton_c and self.game_on == 'Menu':
             self.game_on = 'Carga mundo'
             self.button_sound.play()
@@ -161,10 +194,18 @@ class World:
             self.game_on = 'Menu'
             self.button_sound.play()
         elif self.boton_amp and self.game_on == 'No Informada':
-            nodo, path, maps, acciones = BusquedaNoInformada.Amplitud.solve_amplitud(self.world)
-            print(nodo.position)
-            print(nodo.fire)
+            nodo, path, maps, acciones = BusquedaNoInformada.Amplitud.solve_amplitud(self.matrix)
+            self.move_bomber(path) # Mover al bombero
+            # print(nodo.position)
+            # print(nodo.fire)
+            # print(path)
+            # print(maps[-1])
+            # print(acciones)
+        elif self.boton_cuni and self.game_on == 'No Informada':
+            nodo, path, maps, acciones = BusquedaNoInformada.CostoUniforme.solve_costo_uniforme(self.matrix)
+            self.move_bomber(path)
+        elif self.boton_prof and self.game_on == 'No Informada':
+            nodo, path, maps, acciones = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
+            self.move_bomber(path)
             print(path)
-            print(maps[-1])
-            print(acciones)
 
