@@ -1,5 +1,9 @@
-import pygame as pyg, sys
+import pygame as pyg, sys, numpy as np
 from pygame.locals import *
+
+
+import BusquedaNoInformada.Amplitud
+from BusquedaNoInformada.Amplitud import *
 
 
 
@@ -42,6 +46,9 @@ class World:
         pyg.mixer.music.play(-1)
         pyg.mixer.music.set_volume(0.5)
         self.button_sound = pyg.mixer.Sound('Music/button_clic.wav')
+        self.filename = filename
+        self.matrix = filename
+        self.matrix_generator()
         self.load_world(filename)
         self.carga_mundo_boton = Button((250 - 105), 155, self, "Cargar Mundo")
         self.informada_boton = Button((250 - 105), 225, self, "Informada")
@@ -125,11 +132,22 @@ class World:
                     bombero = pyg.image.load('Sprites/bomberoicon.png')
                     self.screen.blit(bombero, (x1, y1))
 
+    def matrix_generator(self):
+        matriz = np.zeros((10, 10), dtype=int)
+
+        with open(self.filename) as file:
+            for fila, linea in enumerate(file):
+                valores = linea.split()
+                for columna, valor in enumerate(valores):
+                    matriz[fila, columna] = int(valor)
+        self.world = matriz
+
     def checa_boton(self, mouse_pos):
         self.boton_c = self.carga_mundo_boton.rect.collidepoint(mouse_pos)
         self.boton_inf = self.informada_boton.rect.collidepoint(mouse_pos)
         self.boton_ninf = self.no_informada_boton.rect.collidepoint(mouse_pos)
         self.boton_m = self.menu_boton.rect.collidepoint(mouse_pos)
+        self.boton_amp = self.amplitud_boton.rect.collidepoint(mouse_pos)
         if self.boton_c and self.game_on == 'Menu':
             self.game_on = 'Carga mundo'
             self.button_sound.play()
@@ -142,4 +160,11 @@ class World:
         elif self.boton_m and (self.game_on == 'Informada' or self.game_on == 'No Informada'):
             self.game_on = 'Menu'
             self.button_sound.play()
+        elif self.boton_amp and self.game_on == 'No Informada':
+            nodo, path, maps, acciones = BusquedaNoInformada.Amplitud.solve_amplitud(self.world)
+            print(nodo.position)
+            print(nodo.fire)
+            print(path)
+            print(maps[-1])
+            print(acciones)
 
