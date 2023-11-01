@@ -2,11 +2,12 @@ import pygame as pyg, sys
 from pygame.locals import *
 
 
+
 class Button:
     def __init__(self, x, y, juego, texto):
         self.screen = juego.screen
         self.screen_rect = self.screen.get_rect()
-        self.width, self.height = 200, 50
+        self.width, self.height = 210, 50
         self.color = '#D7621A'
         self.textoColor = (255, 255, 255)
         self.font = pyg.font.SysFont('Pixels', 50)
@@ -17,14 +18,19 @@ class Button:
         self.texto_image = self.font.render(texto, True, self.textoColor, None)
         self.texto_image_rect = self.texto_image.get_rect()
 
+    def set_coord(self, set_x, set_y):
+        self.rect.x = set_x
+        self.rect.y = set_y
+
     def dibuja_boton(self):
         self.screen.fill(self.color, self.rect)
-        self.screen.blit(self.texto_image, ((self.rect.x + self.width)/2 + 50, self.rect.y))
+        self.screen.blit(self.texto_image, ((self.width - self.texto_image_rect.width) / 2 + self.rect.x, self.rect.y))
 
 
 class World:
-    def __init__(self, filename, heuristic=None):
+    def __init__(self, filename):
         pyg.init()
+        pyg.mixer.init()
 
         # ventana
         self.screen = pyg.display.set_mode((500, 500))
@@ -32,9 +38,21 @@ class World:
         self.icon = pyg.image.load('Sprites/bomberoicon.png')
         self.color = '#2F2C2B'
         pyg.display.set_icon(self.icon)
+        pyg.mixer.music.load('Music/Jeremy Blake - PowerUp!.wav')
+        pyg.mixer.music.play(-1)
+        pyg.mixer.music.set_volume(0.5)
+        self.button_sound = pyg.mixer.Sound('Music/button_clic.wav')
         self.load_world(filename)
-        self.play_boton = Button((250 - 100), (250 - 25), self, "Play")
-        self.gameOn = False
+        self.carga_mundo_boton = Button((250 - 105), 155, self, "Cargar Mundo")
+        self.informada_boton = Button((250 - 105), 225, self, "Informada")
+        self.avara_boton = Button(145, 170, self, "Avara")
+        self.A_star_boton = Button(145, 230, self, "A*")
+        self.no_informada_boton = Button(145, 295, self, "No Informada")
+        self.amplitud_boton = Button(145, 165, self, "Amplitud")
+        self.costo_uniforme_boton = Button(145, 225, self, "Costo Uniforme")
+        self.profundidad_boton = Button(145, 285, self, "Profundidad")
+        self.menu_boton = Button(0, 0, self, "Menu")
+        self.game_on = 'Menu'
 
     def load_world(self, filename):
         try:
@@ -55,49 +73,34 @@ class World:
                     pyg.quit()
                     sys.exit()
                 elif event.type == pyg.MOUSEBUTTONDOWN:
-                    mousePos = pyg.mouse.get_pos()
-                    self.checaBoton(mousePos)
+                    mouse_pos = pyg.mouse.get_pos()
+                    self.checa_boton(mouse_pos)
 
-            if self.gameOn:
-                self.cargaMundo()
-            if not self.gameOn:
+            if self.game_on == 'Carga mundo':
                 self.screen.fill(self.color)
-                self.play_boton.dibuja_boton()
+                self.carga_mundo()
+            if self.game_on == 'Menu':
+                self.screen.fill(self.color)
+                self.carga_mundo_boton.dibuja_boton()
+                self.informada_boton.dibuja_boton()
+                self.no_informada_boton.dibuja_boton()
+            if self.game_on == 'No Informada':
+                self.screen.fill(self.color)
+                self.amplitud_boton.dibuja_boton()
+                self.costo_uniforme_boton.dibuja_boton()
+                self.profundidad_boton.dibuja_boton()
+                self.menu_boton.set_coord(145, 345)
+                self.menu_boton.dibuja_boton()
+            if self.game_on == 'Informada':
+                self.screen.fill(self.color)
+                self.avara_boton.dibuja_boton()
+                self.A_star_boton.dibuja_boton()
+                self.menu_boton.set_coord(145, 290)
+                self.menu_boton.dibuja_boton()
+
             pyg.display.update()
 
-    def is_goal_state(self):
-        # Verificar si se han apagado ambos puntos de fuego
-        fire_count = sum([row.count(2) for row in self.grid])  # la suma de todos los 2 en el grid
-
-        return fire_count == 0
-
-    def get_actions(self):
-        # Obtener las acciones posibles para el bombero
-        actions = []
-
-        # Obtener la posición actual del bombero
-        for row in range(self.rows):
-            for col in range(self.cols):
-                if self.grid[row][col] == 5:
-                    current_row, current_col = row, col
-
-        # Posibles movientos del aragancito
-        possibles_moves = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-
-        for move in possibles_moves:
-            new_row = current_row + move[0]
-            new_col = current_col + move[1]
-
-            # Es valida la posición si no se sale del mundo y no hay un obstaculo
-            if 0 <= new_row < self.rows and 0 <= new_col < self.cols:
-                cell_value = self.grid[new_row][new_col]
-
-                if cell_value == 0 or cell_value == 2:  # Casilla libre o punto de fuego
-                    actions.append((new_row, new_col))
-
-        return actions
-
-    def cargaMundo(self):
+    def carga_mundo(self):
         # dibujar el mundo
         colors = {
             0: "white",
@@ -122,28 +125,21 @@ class World:
                     bombero = pyg.image.load('Sprites/bomberoicon.png')
                     self.screen.blit(bombero, (x1, y1))
 
-    def checaBoton(self, mousePos):
-        self.botonP = self.play_boton.rect.collidepoint(mousePos)
-        if self.botonP and not self.gameOn:
-            self.gameOn = True
-
-
-if __name__ == "__main__":
-    world = World("prueba1.txt")
-    world.display()
-    
-#import numpy as np
-
-# Crear una matriz de 10x10 inicializada con ceros en numpy
-#matriz = np.zeros((10, 10), dtype=int)
-
-# Leer el archivo prueba1.txt y guardar cada línea en la matriz
-#with open("Prueba1.txt", "r") as file:
-    #for fila, linea in enumerate(file):
-        #valores = linea.split()  # Dividir la línea en valores separados por espacios
-        #for columna, valor in enumerate(valores):
-            #matriz[fila, columna] = int(valor)
-
-# Guardar la matriz en la variable world
-#world = matriz
+    def checa_boton(self, mouse_pos):
+        self.boton_c = self.carga_mundo_boton.rect.collidepoint(mouse_pos)
+        self.boton_inf = self.informada_boton.rect.collidepoint(mouse_pos)
+        self.boton_ninf = self.no_informada_boton.rect.collidepoint(mouse_pos)
+        self.boton_m = self.menu_boton.rect.collidepoint(mouse_pos)
+        if self.boton_c and self.game_on == 'Menu':
+            self.game_on = 'Carga mundo'
+            self.button_sound.play()
+        elif self.boton_inf and self.game_on == 'Menu':
+            self.game_on = 'Informada'
+            self.button_sound.play()
+        elif self.boton_ninf and self.game_on == 'Menu':
+            self.game_on = 'No Informada'
+            self.button_sound.play()
+        elif self.boton_m and (self.game_on == 'Informada' or self.game_on == 'No Informada'):
+            self.game_on = 'Menu'
+            self.button_sound.play()
 
