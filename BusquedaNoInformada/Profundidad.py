@@ -141,7 +141,7 @@ def avoid_cicles(nodo, action):
     new_positon = (nodo.position[0] + acciones[action][0], nodo.position[1] + acciones[action][1])
     current = nodo
     while current is not None:
-        if current.position == new_positon:
+        if current.position == new_positon and current.world.tolist() == nodo.world.tolist():
             return False
         current = current.padre
     else:
