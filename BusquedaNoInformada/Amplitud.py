@@ -1,4 +1,3 @@
-#from world import world
 import copy
 
 # Diccionario de acciones con sus respectivos desplazamientos
@@ -183,12 +182,3 @@ def solve_amplitud(world):
 
     # Retornar el nodo meta
     return nodo, path, maps, acciones
-
-
-# if __name__ == "__main__":
-#     nodo, path, maps, acciones = solve_amplitud(world)
-#     print(nodo.position)
-#     print(nodo.fire)
-#     print(path)
-#     print(maps[-1])
-#     print(acciones)
