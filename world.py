@@ -149,8 +149,6 @@ class World:
                 nodo, path, maps, acciones = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
                 self.move_bomber(path, nodo.fire)
 
-
-
             pyg.display.update()
 
     def carga_mundo(self):
