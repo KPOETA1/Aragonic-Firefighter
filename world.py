@@ -1,4 +1,4 @@
-import pygame as pyg, sys, numpy as np
+import pygame as pyg, sys, numpy as np, animations as a
 from pygame.locals import *
 
 # INFORMADA
@@ -44,12 +44,14 @@ class Button:
 
 
 class World:
+
     def __init__(self, filename):
         pyg.init()
         pyg.mixer.init()
 
         #Bombero
         self.bombero_position = (0, 0) # Posición inicial del bombero
+        self.clock = pyg.time.Clock()
 
         # ventana
         self.screen = pyg.display.set_mode((500, 500))
@@ -61,16 +63,17 @@ class World:
         pyg.mixer.music.play(-1)
         pyg.mixer.music.set_volume(0.5)
         self.button_sound = pyg.mixer.Sound('Music/button_clic.wav')
-        self.bombero = pyg.image.load('./Sprites/bomberoicon.png')
+        self.moving_sprites = pyg.sprite.Group()
+        self.bombero = a.Bombero(self.bombero_position)
+        self.moving_sprites.add(self.bombero)
         self.filename = filename
         self.matrix = filename
         self.matrix_generator()
         self.load_world(filename)
-        self.carga_mundo_boton = Button((250 - 105), 155, self, "Cargar Mundo")
-        self.informada_boton = Button((250 - 105), 225, self, "Informada")
+        self.informada_boton = Button((250 - 105), 170, self, "Informada")
         self.avara_boton = Button(145, 170, self, "Avara")
         self.A_star_boton = Button(145, 230, self, "A*")
-        self.no_informada_boton = Button(145, 295, self, "No Informada")
+        self.no_informada_boton = Button(145, 230, self, "No Informada")
         self.amplitud_boton = Button(145, 165, self, "Amplitud")
         self.costo_uniforme_boton = Button(145, 225, self, "Costo Uniforme")
         self.profundidad_boton = Button(145, 285, self, "Profundidad")
@@ -88,11 +91,24 @@ class World:
             print(f"El archivo '{filename}' no se encontró.")
 
     #   actualizacion posicion del bombero
-    def move_bomber(self, path, fire_count):
+    def move_bomber(self, path, fire_count, acciones):
         self.load_world(self.filename)
         balde = False
+        i = 0
+        accion = 'derecha'
         for next_position in path:
             self.bombero_position = next_position
+            self.moving_sprites = pyg.sprite.Group()
+            if acciones[i] == 'derecha':
+                if balde:
+                    accion = 'derecha balde'
+                else:
+                    accion = 'derecha'
+            if acciones[i] == 'izquierda':
+                if balde:
+                    accion = 'izquierda balde'
+                else:
+                    accion = 'izquierda'
 
             self.screen.fill(self.color)
             cell_value = self.grid[next_position[0]][next_position[1]]
@@ -104,14 +120,15 @@ class World:
 
                 self.grid[next_position[0]][next_position[1]] = 0
             if fire_count == 0:
+                self.grid[next_position[0]][next_position[1]] = 0
+                self.carga_mundo(accion)
+                pyg.display.update()
+                pyg.time.wait(2000)
                 self.game_on = 'Menu'
                 break
 
-            self.carga_mundo()
-            pyg.display.update()
-
-            pyg.time.wait(200)
-            # print("posicion bombero", self.bombero_position)
+            self.carga_mundo(accion)
+            i += 1
 
     def display(self):
 
@@ -125,12 +142,8 @@ class World:
                     mouse_pos = pyg.mouse.get_pos()
                     self.checa_boton(mouse_pos)
 
-            if self.game_on == 'Carga mundo':
-                self.screen.fill(self.color)
-                self.carga_mundo()
             if self.game_on == 'Menu':
                 self.screen.fill(self.color)
-                self.carga_mundo_boton.dibuja_boton()
                 self.informada_boton.dibuja_boton()
                 self.no_informada_boton.dibuja_boton()
             if self.game_on == 'No Informada':
@@ -148,24 +161,24 @@ class World:
                 self.menu_boton.dibuja_boton()
             if self.game_on == 'Amplitud':
                 nodo, path, maps, acciones = BusquedaNoInformada.Amplitud.solve_amplitud(self.matrix)
-                self.move_bomber(path, nodo.fire)
+                self.move_bomber(path, nodo.fire, acciones)
             if self.game_on == 'Costo Uniforme':
                 nodo, path, maps, acciones = BusquedaNoInformada.CostoUniforme.solve_costo_uniforme(self.matrix)
-                self.move_bomber(path, nodo.fire)
+                self.move_bomber(path, nodo.fire, acciones)
             if self.game_on == 'Profundidad':
                 nodo, path, maps, acciones = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
-                self.move_bomber(path, nodo.fire)
+                self.move_bomber(path, nodo.fire, acciones)
             if self.game_on == 'A*':
                 nodo, path, maps, acciones = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
-                self.move_bomber(path, nodo.fire)
+                self.move_bomber(path, nodo.fire, acciones)
             if self.game_on == 'Avara':
                 nodo, path, maps, acciones = BusquedaInformada.Avara.solve_avara(self.matrix)
-                self.move_bomber(path, nodo.fire)
+                self.move_bomber(path, nodo.fire, acciones)
 
-
+            self.clock.tick(60)
             pyg.display.update()
 
-    def carga_mundo(self):
+    def carga_mundo(self, accion):
         # dibujar el mundo
         colors = {
             0: "white",
@@ -176,7 +189,9 @@ class World:
             5: "green",
             6: "blue"
         }
-
+        x_pos = 0
+        y_pos = 0
+        rect_color = 'white'
         for row in range(self.rows):
             for col in range(self.cols):
                 cell_value = self.grid[row][col]
@@ -188,8 +203,18 @@ class World:
                 pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
                 # dibujar el bombero en movimiento
                 if (row, col) == self.bombero_position:
-                    self.bombero = pyg.transform.scale(self.bombero, (50, 50))
-                    self.screen.blit(self.bombero, (x1, y1))
+                    self.bombero = a.Bombero((x1, y1))
+                    self.moving_sprites.add(self.bombero)
+                    rect_color = color
+                    x_pos = x1
+                    y_pos = y1
+        pyg.display.update()
+        for sprite in range(0, 3):
+            update_rect = pyg.draw.rect(self.screen, rect_color, (x_pos + 1, y_pos + 1, 48, 48))
+            self.moving_sprites.update(accion)
+            self.moving_sprites.draw(self.screen)
+            pyg.display.update(update_rect)
+            pyg.time.wait(150)
 
     def matrix_generator(self):
         matriz = np.zeros((10, 10), dtype=int)
@@ -202,7 +227,6 @@ class World:
         self.matrix = matriz
 
     def checa_boton(self, mouse_pos):
-        self.boton_c = self.carga_mundo_boton.rect.collidepoint(mouse_pos)
         self.boton_inf = self.informada_boton.rect.collidepoint(mouse_pos)
         self.boton_ninf = self.no_informada_boton.rect.collidepoint(mouse_pos)
         self.boton_m = self.menu_boton.rect.collidepoint(mouse_pos)
@@ -211,9 +235,6 @@ class World:
         self.boton_prof = self.profundidad_boton.rect.collidepoint(mouse_pos)
         self.boton_star = self.A_star_boton.rect.collidepoint(mouse_pos)
         self.boton_avara = self.avara_boton.rect.collidepoint(mouse_pos)
-        if self.boton_c and self.game_on == 'Menu':
-            self.game_on = 'Carga mundo'
-            self.button_sound.play()
         elif self.boton_inf and self.game_on == 'Menu':
             self.game_on = 'Informada'
             self.button_sound.play()
