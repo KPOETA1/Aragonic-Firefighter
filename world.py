@@ -99,6 +99,15 @@ class World:
         for next_position in path:
             self.bombero_position = next_position
             self.moving_sprites = pyg.sprite.Group()
+            self.screen.fill(self.color)
+            cell_value = self.grid[next_position[0]][next_position[1]]
+            if cell_value == 2 or cell_value == 3 and not balde or cell_value == 4 and not balde:
+                if cell_value == 2:
+                    fire_count -= 1
+                if cell_value == 4 or cell_value == 3:
+                    balde = True
+
+                self.grid[next_position[0]][next_position[1]] = 0
             if acciones[i] == 'derecha':
                 if balde:
                     accion = 'derecha balde'
@@ -110,15 +119,6 @@ class World:
                 else:
                     accion = 'izquierda'
 
-            self.screen.fill(self.color)
-            cell_value = self.grid[next_position[0]][next_position[1]]
-            if cell_value == 2 or cell_value == 3 and not balde or cell_value == 4 and not balde:
-                if cell_value == 2:
-                    fire_count -= 1
-                if cell_value == 4 or cell_value == 3:
-                    balde = True
-
-                self.grid[next_position[0]][next_position[1]] = 0
             if fire_count == 0:
                 self.grid[next_position[0]][next_position[1]] = 0
                 self.carga_mundo(accion)
