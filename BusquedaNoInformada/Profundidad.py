@@ -138,14 +138,15 @@ def avoid_cicles(nodo, action):
     Returns:
         bool: True si el nodo ya fue visitado, False en caso contrario.
     """
-    new_positon = (nodo.position[0] + acciones[action][0], nodo.position[1] + acciones[action][1])
+    new_position = (nodo.position[0] + acciones[action][0], nodo.position[1] + acciones[action][1])
     current = nodo
+
     while current is not None:
-        if current.position == new_positon and current.world.tolist() == nodo.world.tolist():
+        if current.position == new_position and current.world.tolist() == nodo.world.tolist():
             return False
         current = current.padre
-    else:
-        return True
+
+    return True
 
 
 # Crear la clase nodo para el algoritmo de busqueda por Amplitud

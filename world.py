@@ -103,7 +103,7 @@ class World:
             self.carga_mundo()
             pyg.display.update()
 
-            pyg.time.delay(250)
+            pyg.time.delay(100)
             # print("posicion bombero", self.bombero_position)
 
     def display(self):
