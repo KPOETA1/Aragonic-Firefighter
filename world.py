@@ -1,7 +1,7 @@
 import pygame as pyg, sys, numpy as np
 from pygame.locals import *
 
-
+# INFORMADA
 import BusquedaNoInformada.Amplitud
 from BusquedaNoInformada.Amplitud import *
 
@@ -10,6 +10,13 @@ from BusquedaNoInformada.CostoUniforme import *
 
 import BusquedaNoInformada.Profundidad
 from BusquedaNoInformada.Profundidad import *
+
+# NO INFORMADA
+import BusquedaInformada.A_estrella
+from BusquedaInformada.A_estrella import *
+
+import BusquedaInformada.Avara
+from BusquedaInformada.Avara import *
 
 
 class Button:
@@ -103,7 +110,7 @@ class World:
             self.carga_mundo()
             pyg.display.update()
 
-            pyg.time.delay(100)
+            pyg.time.wait(200)
             # print("posicion bombero", self.bombero_position)
 
     def display(self):
@@ -148,6 +155,13 @@ class World:
             if self.game_on == 'Profundidad':
                 nodo, path, maps, acciones = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
                 self.move_bomber(path, nodo.fire)
+            if self.game_on == 'A*':
+                nodo, path, maps, acciones = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
+                self.move_bomber(path, nodo.fire)
+            if self.game_on == 'Avara':
+                nodo, path, maps, acciones = BusquedaInformada.Avara.solve_avara(self.matrix)
+                self.move_bomber(path, nodo.fire)
+
 
             pyg.display.update()
 
@@ -195,6 +209,8 @@ class World:
         self.boton_amp = self.amplitud_boton.rect.collidepoint(mouse_pos)
         self.boton_cuni = self.costo_uniforme_boton.rect.collidepoint(mouse_pos)
         self.boton_prof = self.profundidad_boton.rect.collidepoint(mouse_pos)
+        self.boton_star = self.A_star_boton.rect.collidepoint(mouse_pos)
+        self.boton_avara = self.avara_boton.rect.collidepoint(mouse_pos)
         if self.boton_c and self.game_on == 'Menu':
             self.game_on = 'Carga mundo'
             self.button_sound.play()
@@ -216,4 +232,11 @@ class World:
         elif self.boton_prof and self.game_on == 'No Informada':
             self.game_on = 'Profundidad'
             self.button_sound.play()
+        elif self.boton_star and self.game_on == 'Informada':
+            self.game_on = 'A*'
+            self.button_sound.play()
+        elif self.boton_avara and self.game_on == 'Informada':
+            self.game_on = 'Avara'
+            self.button_sound.play()
+
 
