@@ -235,7 +235,7 @@ class World:
         self.boton_prof = self.profundidad_boton.rect.collidepoint(mouse_pos)
         self.boton_star = self.A_star_boton.rect.collidepoint(mouse_pos)
         self.boton_avara = self.avara_boton.rect.collidepoint(mouse_pos)
-        elif self.boton_inf and self.game_on == 'Menu':
+        if self.boton_inf and self.game_on == 'Menu':
             self.game_on = 'Informada'
             self.button_sound.play()
         elif self.boton_ninf and self.game_on == 'Menu':
