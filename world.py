@@ -62,6 +62,7 @@ class World:
         pyg.mixer.music.load('Music/Jeremy Blake - PowerUp!.wav')
         pyg.mixer.music.play(-1)
         pyg.mixer.music.set_volume(0.5)
+        self.button_pressed = pyg.USEREVENT + 0
         self.button_sound = pyg.mixer.Sound('Music/button_clic.wav')
         self.moving_sprites = pyg.sprite.Group()
         self.bombero = a.Bombero(self.bombero_position)
@@ -78,7 +79,7 @@ class World:
         self.costo_uniforme_boton = Button(145, 225, self, "Costo Uniforme")
         self.profundidad_boton = Button(145, 285, self, "Profundidad")
         self.menu_boton = Button(0, 0, self, "Menu")
-        self.game_on = 'Menu'
+        self.game_on = 'Inicio'
 
     def load_world(self, filename):
         try:
@@ -101,32 +102,41 @@ class World:
             self.moving_sprites = pyg.sprite.Group()
             self.screen.fill(self.color)
             cell_value = self.grid[next_position[0]][next_position[1]]
-            if cell_value == 2 or cell_value == 3 and not balde or cell_value == 4 and not balde:
+            if cell_value == 2 or (cell_value == 3 and not balde) or (cell_value == 4 and not balde):
                 if cell_value == 2:
                     fire_count -= 1
                 if cell_value == 4 or cell_value == 3:
                     balde = True
 
                 self.grid[next_position[0]][next_position[1]] = 0
-            if acciones[i] == 'derecha':
-                if balde:
+            event = pyg.event.get(QUIT)
+            if not event:
+                None
+            elif event[0].type == QUIT:
+                pyg.quit()
+                sys.exit()
+            if balde and (acciones[i] == 'arriba' or acciones[i] == 'abajo'):
+                if self.bombero.image == self.bombero.animation_right[self.bombero.counter]:
                     accion = 'derecha balde'
-                else:
-                    accion = 'derecha'
-            if acciones[i] == 'izquierda':
+            elif acciones[i] == 'izquierda':
                 if balde:
                     accion = 'izquierda balde'
                 else:
                     accion = 'izquierda'
+            elif acciones[i] == 'derecha':
+                if balde:
+                    accion = 'derecha balde'
+                else:
+                    accion = 'derecha'
 
             if fire_count == 0:
                 self.grid[next_position[0]][next_position[1]] = 0
                 self.carga_mundo(accion)
                 pyg.display.update()
                 pyg.time.wait(2000)
-                self.game_on = 'Menu'
+                self.game_on = 'Inicio'
                 break
-
+            pyg.event.pump()
             self.carga_mundo(accion)
             i += 1
 
@@ -141,39 +151,43 @@ class World:
                 elif event.type == pyg.MOUSEBUTTONDOWN:
                     mouse_pos = pyg.mouse.get_pos()
                     self.checa_boton(mouse_pos)
+                    if self.game_on == 'Menu':
+                        self.screen.fill(self.color)
+                        self.informada_boton.dibuja_boton()
+                        self.no_informada_boton.dibuja_boton()
+                    if self.game_on == 'No Informada':
+                        self.screen.fill(self.color)
+                        self.amplitud_boton.dibuja_boton()
+                        self.costo_uniforme_boton.dibuja_boton()
+                        self.profundidad_boton.dibuja_boton()
+                        self.menu_boton.set_coord(145, 345)
+                        self.menu_boton.dibuja_boton()
+                    if self.game_on == 'Informada':
+                        self.screen.fill(self.color)
+                        self.avara_boton.dibuja_boton()
+                        self.A_star_boton.dibuja_boton()
+                        self.menu_boton.set_coord(145, 290)
+                        self.menu_boton.dibuja_boton()
+                    if self.game_on == 'Amplitud':
+                        nodo, path, maps, acciones = BusquedaNoInformada.Amplitud.solve_amplitud(self.matrix)
+                        self.move_bomber(path, nodo.fire, acciones)
+                    if self.game_on == 'Costo Uniforme':
+                        nodo, path, maps, acciones = BusquedaNoInformada.CostoUniforme.solve_costo_uniforme(self.matrix)
+                        self.move_bomber(path, nodo.fire, acciones)
+                    if self.game_on == 'Profundidad':
+                        nodo, path, maps, acciones = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
+                        self.move_bomber(path, nodo.fire, acciones)
+                    if self.game_on == 'A*':
+                        nodo, path, maps, acciones = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
+                        self.move_bomber(path, nodo.fire, acciones)
+                    if self.game_on == 'Avara':
+                        nodo, path, maps, acciones = BusquedaInformada.Avara.solve_avara(self.matrix)
+                        self.move_bomber(path, nodo.fire, acciones)
 
-            if self.game_on == 'Menu':
+            if self.game_on == 'Inicio':
                 self.screen.fill(self.color)
                 self.informada_boton.dibuja_boton()
                 self.no_informada_boton.dibuja_boton()
-            if self.game_on == 'No Informada':
-                self.screen.fill(self.color)
-                self.amplitud_boton.dibuja_boton()
-                self.costo_uniforme_boton.dibuja_boton()
-                self.profundidad_boton.dibuja_boton()
-                self.menu_boton.set_coord(145, 345)
-                self.menu_boton.dibuja_boton()
-            if self.game_on == 'Informada':
-                self.screen.fill(self.color)
-                self.avara_boton.dibuja_boton()
-                self.A_star_boton.dibuja_boton()
-                self.menu_boton.set_coord(145, 290)
-                self.menu_boton.dibuja_boton()
-            if self.game_on == 'Amplitud':
-                nodo, path, maps, acciones = BusquedaNoInformada.Amplitud.solve_amplitud(self.matrix)
-                self.move_bomber(path, nodo.fire, acciones)
-            if self.game_on == 'Costo Uniforme':
-                nodo, path, maps, acciones = BusquedaNoInformada.CostoUniforme.solve_costo_uniforme(self.matrix)
-                self.move_bomber(path, nodo.fire, acciones)
-            if self.game_on == 'Profundidad':
-                nodo, path, maps, acciones = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
-                self.move_bomber(path, nodo.fire, acciones)
-            if self.game_on == 'A*':
-                nodo, path, maps, acciones = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
-                self.move_bomber(path, nodo.fire, acciones)
-            if self.game_on == 'Avara':
-                nodo, path, maps, acciones = BusquedaInformada.Avara.solve_avara(self.matrix)
-                self.move_bomber(path, nodo.fire, acciones)
 
             self.clock.tick(60)
             pyg.display.update()
@@ -235,16 +249,17 @@ class World:
         self.boton_prof = self.profundidad_boton.rect.collidepoint(mouse_pos)
         self.boton_star = self.A_star_boton.rect.collidepoint(mouse_pos)
         self.boton_avara = self.avara_boton.rect.collidepoint(mouse_pos)
-        if self.boton_inf and self.game_on == 'Menu':
+        if self.boton_inf and (self.game_on == 'Menu' or self.game_on == 'Inicio'):
             self.game_on = 'Informada'
             self.button_sound.play()
-        elif self.boton_ninf and self.game_on == 'Menu':
+        elif self.boton_ninf and (self.game_on == 'Menu' or self.game_on == 'Inicio'):
             self.game_on = 'No Informada'
             self.button_sound.play()
-        elif self.boton_m and (self.game_on == 'Informada' or self.game_on == 'No Informada'):
+        elif self.boton_m and (self.game_on == 'Informada' or self.game_on == 'No Informada'
+                               or self.game_on == 'Inicio'):
             self.game_on = 'Menu'
             self.button_sound.play()
-        elif self.boton_amp and self.game_on == 'No Informada': # Mover al bombero
+        elif self.boton_amp and self.game_on == 'No Informada':
             self.game_on = 'Amplitud'
             self.button_sound.play()
         elif self.boton_cuni and self.game_on == 'No Informada':

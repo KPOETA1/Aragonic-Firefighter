@@ -198,7 +198,6 @@ def solve_avara(world):
     while not solved:
         # Verificar el primer nodo de la lista de nodos por expandir
         nodo = nodos_por_expandir[0]
-        print(nodo.position)
         # Verificar si el nodo es una meta
         if nodo.fire == 0:
             solved = True
