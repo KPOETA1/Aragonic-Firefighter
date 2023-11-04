@@ -1,8 +1,5 @@
 import pygame, sys
 
-pygame.init()
-screen = pygame.display.set_mode((500, 500))
-
 
 class Bombero(pygame.sprite.Sprite):
     def __init__(self, position):
