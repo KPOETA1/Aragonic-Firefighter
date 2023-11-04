@@ -57,17 +57,21 @@ class World:
         self.screen = pyg.display.set_mode((500, 500))
         pyg.display.set_caption('Bombero Araganico')
         self.icon = pyg.image.load('Sprites/bomberoicon.png')
+        self.fire_image = pyg.image.load('Sprites/fire.png')
+        self.hidrante = pyg.image.load('Sprites/hidrante.png')
+        self.balde = pyg.image.load('Sprites/balde.png')
         self.color = '#2F2C2B'
         pyg.display.set_icon(self.icon)
         pyg.mixer.music.load('Music/Jeremy Blake - PowerUp!.wav')
         pyg.mixer.music.play(-1)
         pyg.mixer.music.set_volume(0.5)
-        self.button_pressed = pyg.USEREVENT + 0
         self.button_sound = pyg.mixer.Sound('Music/button_clic.wav')
         self.moving_sprites = pyg.sprite.Group()
         self.bombero = a.Bombero(self.bombero_position)
         self.moving_sprites.add(self.bombero)
         self.filename = filename
+        self.costo = False
+        self.record_state = None
         self.matrix = filename
         self.matrix_generator()
         self.load_world(filename)
@@ -133,12 +137,23 @@ class World:
                 self.grid[next_position[0]][next_position[1]] = 0
                 self.carga_mundo(accion)
                 pyg.display.update()
-                pyg.time.wait(2000)
-                self.game_on = 'Inicio'
+                pyg.time.wait(1000)
+                self.game_on = 'Registro'
+                self.crear_texto('Presiona r para ver el registro', (250, 250), self.screen)
+
                 break
             pyg.event.pump()
             self.carga_mundo(accion)
             i += 1
+
+    def crear_texto(self, text, position, screen):
+
+        font = pyg.font.Font('Fonts/Pixels.ttf', 50)
+        mensaje = font.render(text, True, '#DF621C', None)
+
+        mensaje_rect = mensaje.get_rect()
+        mensaje_rect.center = [position[0], position[1]]
+        screen.blit(mensaje, mensaje_rect)
 
     def display(self):
 
@@ -169,20 +184,64 @@ class World:
                         self.menu_boton.set_coord(145, 290)
                         self.menu_boton.dibuja_boton()
                     if self.game_on == 'Amplitud':
-                        nodo, path, maps, acciones = BusquedaNoInformada.Amplitud.solve_amplitud(self.matrix)
+                        nodo, path, maps, acciones, contador, tiempo = BusquedaNoInformada.Amplitud.solve_amplitud(self.matrix)
                         self.move_bomber(path, nodo.fire, acciones)
+                        self.record_state = 'Amp'
                     if self.game_on == 'Costo Uniforme':
-                        nodo, path, maps, acciones = BusquedaNoInformada.CostoUniforme.solve_costo_uniforme(self.matrix)
+                        nodo, path, maps, acciones, contador, tiempo, costo = BusquedaNoInformada.CostoUniforme.solve_costo_uniforme(self.matrix)
                         self.move_bomber(path, nodo.fire, acciones)
+                        self.record_state = 'Cu'
                     if self.game_on == 'Profundidad':
-                        nodo, path, maps, acciones = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
+                        nodo, path, maps, acciones, contador, tiempo = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
                         self.move_bomber(path, nodo.fire, acciones)
+                        self.record_state = 'Prof'
                     if self.game_on == 'A*':
-                        nodo, path, maps, acciones = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
+                        nodo, path, maps, acciones, contador, tiempo = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
                         self.move_bomber(path, nodo.fire, acciones)
+                        self.record_state = 'A*'
                     if self.game_on == 'Avara':
-                        nodo, path, maps, acciones = BusquedaInformada.Avara.solve_avara(self.matrix)
+                        nodo, path, maps, acciones, contador, tiempo = BusquedaInformada.Avara.solve_avara(self.matrix)
                         self.move_bomber(path, nodo.fire, acciones)
+                        self.record_state = 'Ava'
+                if event.type == pyg.KEYDOWN:
+                    if event.key == pyg.K_r and self.game_on == 'Registro':
+                        self.screen.fill(self.color)
+                        self.menu_boton.set_coord(145, 290)
+                        self.menu_boton.dibuja_boton()
+                        nodos = 0
+                        profundidad = 0
+                        tiempo = 0
+                        costo = 0
+                        if self.record_state == 'Amp':
+                            nodo, path, maps, acciones, contador, tiempo = BusquedaNoInformada.Amplitud.solve_amplitud(self.matrix)
+                            profundidad = len(path)
+                            nodos = contador
+
+                        if self.record_state == 'Cu':
+                            nodo, path, maps, acciones, contador, tiempo, costo = BusquedaNoInformada.CostoUniforme.solve_costo_uniforme(self.matrix)
+                            profundidad = len(path)
+                            nodos = contador
+                            self.crear_texto('Costo de solucion: {}'.format(costo), (250, 200), self.screen)
+
+                        if self.record_state == 'Prof':
+                            nodo, path, maps, acciones, contador, tiempo = BusquedaNoInformada.Profundidad.solve_profundidad(self.matrix)
+                            profundidad = len(path)
+                            nodos = contador
+
+                        if self.record_state == 'A*':
+                            nodo, path, maps, acciones, contador, tiempo = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
+                            profundidad = len(path)
+                            nodos = contador
+                            self.crear_texto('Costo de solucion: {}'.format(costo), (250, 200), self.screen)
+
+                        if self.record_state == 'Ava':
+                            nodo, path, maps, acciones, contador, tiempo = BusquedaInformada.Avara.solve_avara(self.matrix)
+                            profundidad = len(path)
+                            nodos = contador
+
+                        self.crear_texto('Nodos expandidos: {}'.format(nodos), (250, 50), self.screen)
+                        self.crear_texto('Profundidad del arbol: {}'.format(profundidad), (250, 100), self.screen)
+                        self.crear_texto('Tiempo de computo: {}'.format(tiempo), (250, 150), self.screen)
 
             if self.game_on == 'Inicio':
                 self.screen.fill(self.color)
@@ -206,15 +265,33 @@ class World:
         x_pos = 0
         y_pos = 0
         rect_color = 'white'
+        grid_row = 0
+        grid_col = 0
         for row in range(self.rows):
             for col in range(self.cols):
                 cell_value = self.grid[row][col]
                 color = colors.get(cell_value, "white")
                 x1, y1 = col * 50, row * 50
                 x2, y2 = x1 + 50, y1 + 50
-                pyg.draw.rect(self.screen, color, (x1, y1, x2, y2))
-                pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
-                pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
+                if cell_value == 2:
+                    pyg.draw.rect(self.screen, 'white', (x1, y1, x2, y2))
+                    self.screen.blit(self.fire_image, (x1, y1))
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
+                elif cell_value == 6:
+                    pyg.draw.rect(self.screen, 'white', (x1, y1, x2, y2))
+                    self.screen.blit(self.hidrante, (x1, y1))
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
+                elif cell_value == 3 or cell_value == 4:
+                    pyg.draw.rect(self.screen, 'white', (x1, y1, x2, y2))
+                    self.screen.blit(self.balde, (x1, y1))
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
+                else:
+                    pyg.draw.rect(self.screen, color, (x1, y1, x2, y2))
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
                 # dibujar el bombero en movimiento
                 if (row, col) == self.bombero_position:
                     self.bombero = a.Bombero((x1, y1))
@@ -222,13 +299,24 @@ class World:
                     rect_color = color
                     x_pos = x1
                     y_pos = y1
+                    grid_row = row
+                    grid_col = col
         pyg.display.update()
         for sprite in range(0, 3):
             update_rect = pyg.draw.rect(self.screen, rect_color, (x_pos + 1, y_pos + 1, 48, 48))
+            if self.grid[grid_row][grid_col] == 2:
+                pyg.draw.rect(self.screen, 'white', (x_pos + 1, y_pos + 1, 48, 48))
+                self.screen.blit(self.fire_image, (x_pos, y_pos))
+            if self.grid[grid_row][grid_col] == 3 or self.grid[grid_row][grid_col] == 4:
+                pyg.draw.rect(self.screen, 'white', (x_pos + 1, y_pos + 1, 48, 48))
+                self.screen.blit(self.balde, (x_pos, y_pos))
+            if self.grid[grid_row][grid_col] == 6:
+                pyg.draw.rect(self.screen, 'white', (x_pos + 1, y_pos + 1, 48, 48))
+                self.screen.blit(self.hidrante, (x_pos, y_pos))
             self.moving_sprites.update(accion)
             self.moving_sprites.draw(self.screen)
             pyg.display.update(update_rect)
-            pyg.time.wait(150)
+            pyg.time.wait(80)
 
     def matrix_generator(self):
         matriz = np.zeros((10, 10), dtype=int)
@@ -255,8 +343,8 @@ class World:
         elif self.boton_ninf and (self.game_on == 'Menu' or self.game_on == 'Inicio'):
             self.game_on = 'No Informada'
             self.button_sound.play()
-        elif self.boton_m and (self.game_on == 'Informada' or self.game_on == 'No Informada'
-                               or self.game_on == 'Inicio'):
+        elif self.boton_m and (self.game_on == 'Informada' or self.game_on == 'No Informada' or
+                               self.game_on == 'Registro'):
             self.game_on = 'Menu'
             self.button_sound.play()
         elif self.boton_amp and self.game_on == 'No Informada':

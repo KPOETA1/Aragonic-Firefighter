@@ -1,5 +1,5 @@
 #from world import world
-import copy
+import copy, time
 
 # Diccionario de acciones con sus respectivos desplazamientos
 acciones = {
@@ -148,10 +148,16 @@ class Nodo:
 
 
 def solve_costo_uniforme(world):
+    # Inicializa un temporizador
+    timer_start = time.time()
     # Crear el nodo inicial
     nodoInicial = Nodo(world, cubo=0, agua=0, position=get_position(world, 5), fire=2)
     # Crear una lista de nodos por expandir (cola)
     nodos_por_expandir = [nodoInicial]
+    # Contador de nodos expandidos
+    contador = 0
+    # Contador de Costo
+    costo = 0
     # Variable para determinaar si el problema fue resuelto
     solved = False
     while not solved:
@@ -167,6 +173,10 @@ def solve_costo_uniforme(world):
             nodos_por_expandir = nodos_por_expandir[1:] + hijos
             # Ordenar la lista de nodos por expandir de forma ascendente por el costo
             nodos_por_expandir.sort(key=lambda x: x.costo)
+            # Incremento del contador
+            contador += 1
+
+    costo = nodo.costo
 
     acciones = []
     path = []  # camino recorrido
@@ -187,8 +197,10 @@ def solve_costo_uniforme(world):
     acciones.append(nodo.accion)
     acciones.reverse()  # Se invierte el camino para que quede en el orden correcto
 
+    timer_finish = time.time()
+    tiempo = round(timer_finish - timer_start, 5)
     # Retornar el nodo meta
-    return nodo, path, maps, acciones
+    return nodo, path, maps, acciones, contador, tiempo, costo
 
 # if __name__ == "__main__":
 #     nodo, path, maps, acciones = solve_amplitud(world)
