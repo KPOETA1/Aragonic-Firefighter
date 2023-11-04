@@ -197,7 +197,7 @@ class World:
                         self.move_bomber(path, nodo.fire, acciones)
                         self.record_state = 'Prof'
                     if self.game_on == 'A*':
-                        nodo, path, maps, acciones, contador, tiempo = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
+                        nodo, path, maps, acciones, contador, tiempo, costo = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
                         self.move_bomber(path, nodo.fire, acciones)
                         self.record_state = 'A*'
                     if self.game_on == 'Avara':
@@ -230,7 +230,7 @@ class World:
                             nodos = contador
 
                         if self.record_state == 'A*':
-                            nodo, path, maps, acciones, contador, tiempo = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
+                            nodo, path, maps, acciones, contador, tiempo, costo = BusquedaInformada.A_estrella.solve_a_estrella(self.matrix)
                             profundidad = len(path)
                             nodos = contador
                             self.crear_texto('Costo de solucion: {}'.format(costo), (250, 200), self.screen)

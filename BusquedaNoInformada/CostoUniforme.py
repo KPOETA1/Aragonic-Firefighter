@@ -164,8 +164,6 @@ def solve_costo_uniforme(world):
     nodos_por_expandir = [nodoInicial]
     # Contador de nodos expandidos
     contador = 0
-    # Contador de Costo
-    costo = 0
     # Variable para determinaar si el problema fue resuelto
     solved = False
     while not solved:

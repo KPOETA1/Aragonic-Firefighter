@@ -11,6 +11,7 @@ acciones = {
 }
 
 
+
 from BusquedaInformada.heuristica import *
 
 def get_position(nodo, x):
@@ -184,6 +185,8 @@ def solve_a_estrella(world):
             # Incremento del contador
             contador += 1
 
+    costo = nodo.costo
+
     acciones = []
     path = []  # camino recorrido
     maps = []  # los mapas de cada nodo
@@ -206,7 +209,7 @@ def solve_a_estrella(world):
     timer_finish = time.time()
     tiempo = round(timer_finish - timer_start, 5)
     # Retornar el nodo meta
-    return nodo, path, maps, acciones, contador, tiempo
+    return nodo, path, maps, acciones, contador, tiempo, costo
 
 # if __name__ == "__main__":
 #     nodos = solve_a_estrella(world)
