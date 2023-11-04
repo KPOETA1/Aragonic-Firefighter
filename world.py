@@ -61,6 +61,8 @@ class World:
         self.fire_image = pyg.image.load('Sprites/fire.png')
         self.hidrante = pyg.image.load('Sprites/hidrante.png')
         self.balde = pyg.image.load('Sprites/balde.png')
+        self.building = pyg.image.load('Sprites/building.png')
+        self.fire_station = pyg.image.load('Sprites/fire_station.png')
         self.color = '#2F2C2B'
         pyg.display.set_icon(self.icon)
         pyg.mixer.music.load('Music/Jeremy Blake - PowerUp!.wav')
@@ -212,7 +214,6 @@ class World:
                         nodos = 0
                         profundidad = 0
                         tiempo = 0
-                        costo = 0
                         if self.record_state == 'Amp':
                             nodo, path, maps, acciones, contador, tiempo = BusquedaNoInformada.Amplitud.solve_amplitud(self.matrix)
                             profundidad = len(path)
@@ -255,12 +256,12 @@ class World:
     def carga_mundo(self, accion):
         # dibujar el mundo
         colors = {
-            0: "white",
-            1: "gray",
+            0: "#ebdfcf",
+            1: self.color,
             2: "orange",
             3: "#DC143C",
             4: "red",
-            5: "green",
+            5: "#47793b",
             6: "blue"
         }
         x_pos = 0
@@ -271,24 +272,30 @@ class World:
         for row in range(self.rows):
             for col in range(self.cols):
                 cell_value = self.grid[row][col]
-                color = colors.get(cell_value, "white")
+                color = colors.get(cell_value, "#ebdfcf")
                 x1, y1 = col * 50, row * 50
                 x2, y2 = x1 + 50, y1 + 50
                 if cell_value == 2:
-                    pyg.draw.rect(self.screen, 'white', (x1, y1, x2, y2))
+                    pyg.draw.rect(self.screen, '#ebdfcf', (x1, y1, x2, y2))
                     self.screen.blit(self.fire_image, (x1, y1))
                     pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
                     pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
                 elif cell_value == 6:
-                    pyg.draw.rect(self.screen, 'white', (x1, y1, x2, y2))
+                    pyg.draw.rect(self.screen, '#ebdfcf', (x1, y1, x2, y2))
                     self.screen.blit(self.hidrante, (x1, y1))
                     pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
                     pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
                 elif cell_value == 3 or cell_value == 4:
-                    pyg.draw.rect(self.screen, 'white', (x1, y1, x2, y2))
+                    pyg.draw.rect(self.screen, '#ebdfcf', (x1, y1, x2, y2))
                     self.screen.blit(self.balde, (x1, y1))
                     pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
                     pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
+                elif cell_value == 5:
+                    pyg.draw.rect(self.screen, '#ebdfcf', (x1, y1, x2, y2))
+                    self.screen.blit(self.fire_station, (x1, y1))
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
+                    pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x1, y2), 1)
+
                 else:
                     pyg.draw.rect(self.screen, color, (x1, y1, x2, y2))
                     pyg.draw.line(self.screen, (0, 0, 0), (x1, y1), (x2, y1), 1)
@@ -306,14 +313,17 @@ class World:
         for sprite in range(0, 3):
             update_rect = pyg.draw.rect(self.screen, rect_color, (x_pos + 1, y_pos + 1, 48, 48))
             if self.grid[grid_row][grid_col] == 2:
-                pyg.draw.rect(self.screen, 'white', (x_pos + 1, y_pos + 1, 48, 48))
+                pyg.draw.rect(self.screen, '#ebdfcf', (x_pos + 1, y_pos + 1, 48, 48))
                 self.screen.blit(self.fire_image, (x_pos, y_pos))
             if self.grid[grid_row][grid_col] == 3 or self.grid[grid_row][grid_col] == 4:
-                pyg.draw.rect(self.screen, 'white', (x_pos + 1, y_pos + 1, 48, 48))
+                pyg.draw.rect(self.screen, '#ebdfcf', (x_pos + 1, y_pos + 1, 48, 48))
                 self.screen.blit(self.balde, (x_pos, y_pos))
             if self.grid[grid_row][grid_col] == 6:
-                pyg.draw.rect(self.screen, 'white', (x_pos + 1, y_pos + 1, 48, 48))
+                pyg.draw.rect(self.screen, '#ebdfcf', (x_pos + 1, y_pos + 1, 48, 48))
                 self.screen.blit(self.hidrante, (x_pos, y_pos))
+            if self.grid[grid_row][grid_col] == 5:
+                pyg.draw.rect(self.screen, '#ebdfcf', (x_pos + 1, y_pos + 1, 48, 48))
+                self.screen.blit(self.fire_station, (x_pos, y_pos))
             self.moving_sprites.update(accion)
             self.moving_sprites.draw(self.screen)
             pyg.display.update(update_rect)
