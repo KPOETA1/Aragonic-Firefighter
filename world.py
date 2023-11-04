@@ -1,5 +1,6 @@
 import pygame as pyg, sys, numpy as np, animations as a
 from pygame.locals import *
+from BusquedaInformada.heuristica import * 
 
 # INFORMADA
 import BusquedaNoInformada.Amplitud
