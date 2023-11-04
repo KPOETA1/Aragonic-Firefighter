@@ -10,6 +10,14 @@ acciones = {
 
 
 def get_position(nodo, x):
+    '''
+    Retorna la posición de un elemento en el mundo.
+    Args:
+        nodo (Nodo): Nodo que contiene el mundo.
+        x (int): Elemento a buscar.
+    Returns:
+        tuple: Posición del elemento.
+    '''
     for i in range(10):
         for j in range(10):
             if nodo[i][j] == x:

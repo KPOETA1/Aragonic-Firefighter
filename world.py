@@ -1,5 +1,6 @@
 import pygame as pyg, sys, numpy as np, animations as a
 from pygame.locals import *
+from BusquedaInformada.heuristica import * 
 
 # INFORMADA
 import BusquedaNoInformada.Amplitud
@@ -228,7 +229,7 @@ class World:
             self.moving_sprites.update(accion)
             self.moving_sprites.draw(self.screen)
             pyg.display.update(update_rect)
-            pyg.time.wait(150)
+            pyg.time.wait(80)
 
     def matrix_generator(self):
         matriz = np.zeros((10, 10), dtype=int)

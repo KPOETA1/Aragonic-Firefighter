@@ -11,6 +11,14 @@ acciones = {
 
 
 def get_position(nodo, x):
+    '''
+    Retorna la posición de un elemento en el mundo.
+    Args:
+        nodo (Nodo): Nodo que contiene el mundo.
+        x (int): Elemento a buscar.
+    Returns:
+        tuple: Posición del elemento.
+    '''
     for i in range(10):
         for j in range(10):
             if nodo[i][j] == x:
@@ -40,23 +48,23 @@ def apply_action_node(nodo, action):
     # Verifica si la posición a la que se moverá el bombero es un fuego
     if new_world[posicion[0], posicion[1]] == 2 and nodo.agua > 0:
         new_world[posicion[0], posicion[1]] = 0
-        return Nodo(new_world, nodo, action, nodo.cubo, nodo.agua - 1, posicion, fire=nodo.fire - 1,
+        return Nodo(new_world, nodo, action, nodo.cubo, nodo.agua - 1, posicion, fire=nodo.fire - 1, # COSTO : COSTO_MOVIMIENTO_1LT O COSTO_MOVIMIENTO_2LT
                     costo=nodo.costo + 1 + nodo.agua)
     # Verifica si la posición a la que se moverá el bombero es un cubo de 1 litro
     elif new_world[posicion[0], posicion[1]] == 3 and nodo.cubo == 0:
         new_world[posicion[0], posicion[1]] = 0
-        return Nodo(new_world, nodo, action, nodo.cubo + 1, nodo.agua, posicion, fire=nodo.fire, costo=nodo.costo + 1)
+        return Nodo(new_world, nodo, action, nodo.cubo + 1, nodo.agua, posicion, fire=nodo.fire, costo=nodo.costo + 1) # COSTO_MOVIMIENTO
     # Verifica si la posición a la que se moverá el bombero es un cubo de 2 litros
     elif new_world[posicion[0], posicion[1]] == 4 and nodo.cubo == 0:
         new_world[posicion[0], posicion[1]] = 0
-        return Nodo(new_world, nodo, action, nodo.cubo + 2, nodo.agua, posicion, fire=nodo.fire, costo=nodo.costo + 1)
+        return Nodo(new_world, nodo, action, nodo.cubo + 2, nodo.agua, posicion, fire=nodo.fire, costo=nodo.costo + 1) # COSTO_MOVIMIENTO
     # Verifica si la posición a la que se moverá el bombero es el hidrante
     elif new_world[posicion[0], posicion[1]] == 6 and nodo.agua == 0:
-        return Nodo(new_world, nodo, action, nodo.cubo, nodo.agua + nodo.cubo, posicion, fire=nodo.fire,
+        return Nodo(new_world, nodo, action, nodo.cubo, nodo.agua + nodo.cubo, posicion, fire=nodo.fire, # COSTO_MOVIMIENTO_CUBO
                     costo=nodo.costo + 1)
     # En caso de que no sea ninguno de los anteriores, solo se mueve
     else:
-        return Nodo(new_world, nodo, action, nodo.cubo, nodo.agua, posicion, fire=nodo.fire,
+        return Nodo(new_world, nodo, action, nodo.cubo, nodo.agua, posicion, fire=nodo.fire, # COSTO_MOVIMIENTO O COSTO_MOVIMIENTO_CUBO
                     costo=nodo.costo + 1 + nodo.agua)
 
 

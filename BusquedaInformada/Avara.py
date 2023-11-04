@@ -1,13 +1,6 @@
 #from world import world
 import copy
-
-# Diccionario de acciones con sus respectivos desplazamientos
-acciones = {
-    "arriba": (-1,0),
-    "abajo": (1,0),
-    "izquierda": (0,-1),
-    "derecha": (0,1)
-}
+from BusquedaInformada.heuristica import *
 
 def get_position (nodo, x):
     """
@@ -22,31 +15,7 @@ def get_position (nodo, x):
         for j in range(10):
             if nodo[i][j] == x:
                 return (i,j)
-            
-def heuristic(nodo, accion):
-    # (Distancia entre el bombero y el fuego más cercano + distancia entre ese fuego y el otro) * 3
-    bombero_position = (nodo.position[0] + acciones[accion][0], nodo.position[1] + acciones[accion][1])
-    fuego_positions = get_fuego_positions(nodo)
-    distancia_fuegos = 0
-    if len(fuego_positions) == 0:
-        return 0  # No hay fuegos, la meta ya está alcanzada
-    
-    if len(fuego_positions) == 2:
-        distancia_fuegos = abs(fuego_positions[0][0] - fuego_positions[1][0]) + abs(fuego_positions[0][1] - fuego_positions[1][1])
 
-    min_dist = float('inf')
-    for fuego_position in fuego_positions:
-        dist = abs(bombero_position[0] - fuego_position[0]) + abs(bombero_position[1] - fuego_position[1])
-        min_dist = min(min_dist, dist) 
-    return (min_dist + distancia_fuegos) * 3
-
-def get_fuego_positions(nodo):
-    fuego_positions = []
-    for i in range(10):
-        for j in range(10):
-            if nodo.world[i][j] == 2:
-                fuego_positions.append((i, j))
-    return fuego_positions
 
 def apply_action_node(nodo, action):
     """
@@ -190,7 +159,8 @@ class Nodo:
     
 def solve_avara(world):
     # Crear el nodo inicial
-    nodoInicial = Nodo(world, cubo=0, agua=0, position=get_position(world, 5), fire=3)
+    nodoInicial = Nodo(world, cubo=0, agua=0, position=get_position(world, 5), fire=2)
+    nodoInicial.heuristic = heuristic(nodoInicial, None)
     # Crear una lista de nodos por expandir (cola)
     nodos_por_expandir = [nodoInicial]
     # Variable para determinaar si el problema fue resuelto
@@ -210,8 +180,8 @@ def solve_avara(world):
             nodos_por_expandir.sort(key=lambda x: x.heuristic)
  
     acciones = []
-    path = []   # camino recorrido
-    maps = []   # los mapas de cada nodo
+    path = []  # camino recorrido
+    maps = []  # los mapas de cada nodo
 
     while nodo.padre is not None:
         path.append(nodo.position)
@@ -220,22 +190,19 @@ def solve_avara(world):
         nodo = nodo.padre
 
     path.append(nodo.position)
-    path.reverse() # Se invierte el camino para que quede en el orden correcto
+    path.reverse()  # Se invierte el camino para que quede en el orden correcto
 
     maps.append(nodo.world)
-    maps.reverse() # Se invierte el camino para que quede en el orden correcto
+    maps.reverse()  # Se invierte el camino para que quede en el orden correcto
 
     acciones.append(nodo.accion)
-    acciones.reverse() # Se invierte el camino para que quede en el orden correcto
+    acciones.reverse()  # Se invierte el camino para que quede en el orden correcto
 
     # Retornar el nodo meta
     return nodo, path, maps, acciones
 
 
 # if __name__ == "__main__":
-#     nodo, path, maps, acciones = solve_avara(world)
-#     print(nodo.position)
-#     print(nodo.fire)
-#     print(path)
-#     print(maps[-1])
-#     print(acciones)
+#     nodos = solve_avara(world)
+#     for nodo in nodos:
+#         print(nodo.heuristic)
