@@ -11,7 +11,8 @@ acciones = {
 }
 
 
-from BusquedaInformada.heuristica import * 
+
+from BusquedaInformada.heuristica import *
 
 def get_position(nodo, x):
     '''
