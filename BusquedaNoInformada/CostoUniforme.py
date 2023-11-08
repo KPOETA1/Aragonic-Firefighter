@@ -102,25 +102,25 @@ def expand_node(nodo):
     if nodo.position[0] - 1 >= 0:
         if nodo.world[nodo.position[0] - 1, nodo.position[1]] != 1:
             if nodo.world[nodo.position[0] - 1, nodo.position[1]] != 2 or nodo.agua > 0:
-                if nodo.accion != "abajo" or can_go_back(nodo):
+                if avoid_cicles(nodo, "arriba") or can_go_back(nodo):
                     acciones_posibles.append("arriba")
-    # Verificar si se puede ir abajo
+    #Verificar si se puede ir abajo
     if nodo.position[0] + 1 < 10:
         if nodo.world[nodo.position[0] + 1, nodo.position[1]] != 1:
             if nodo.world[nodo.position[0] + 1, nodo.position[1]] != 2 or nodo.agua > 0:
-                if nodo.accion != "arriba" or can_go_back(nodo):
+                if avoid_cicles(nodo, "abajo") or can_go_back(nodo):
                     acciones_posibles.append("abajo")
-    # Verificar si se puede ir a la izquierda
+    #Verificar si se puede ir a la izquierda
     if nodo.position[1] - 1 >= 0:
         if nodo.world[nodo.position[0], nodo.position[1] - 1] != 1:
             if nodo.world[nodo.position[0], nodo.position[1] - 1] != 2 or nodo.agua > 0:
-                if nodo.accion != "derecha" or can_go_back(nodo):
+                if avoid_cicles(nodo, "izquierda") or can_go_back(nodo):
                     acciones_posibles.append("izquierda")
-    # Verificar si se puede ir a la derecha
+    #Verificar si se puede ir a la derecha
     if nodo.position[1] + 1 < 10:
         if nodo.world[nodo.position[0], nodo.position[1] + 1] != 1:
             if nodo.world[nodo.position[0], nodo.position[1] + 1] != 2 or nodo.agua > 0:
-                if nodo.accion != "izquierda" or can_go_back(nodo):
+                if avoid_cicles(nodo, "derecha") or can_go_back(nodo):
                     acciones_posibles.append("derecha")
 
     # Iterar sobre las acciones
@@ -131,6 +131,23 @@ def expand_node(nodo):
         hijos.append(hijo)
     # Retornar la lista de hijos
     return hijos
+
+def avoid_cicles(nodo, action):
+    """
+    Verifica si el nodo actual ya fue visitado.
+    Args:
+        nodo (Nodo): Nodo actual.
+    Returns:
+        bool: True si el nodo ya fue visitado, False en caso contrario.
+    """
+    new_positon = (nodo.position[0] + acciones[action][0], nodo.position[1] + acciones[action][1])
+    current = nodo
+    while current is not None:
+        if current.position == new_positon and current.world.tolist() == nodo.world.tolist():
+            return False
+        current = current.padre
+    else:
+        return True
 
 
 # Crear la clase nodo para el algoritmo de busqueda por Amplitud
